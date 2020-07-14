@@ -98,16 +98,20 @@ def a_star(grid, h, start, goal):
 
     branch = {}
     found = False
-    
+    ii = 0
     while not queue.empty():
+        ii += 1
+        if ii % 1000 == 0:
+            print("Inside A*")
+            ii=0
         item = queue.get()
         current_node = item[1]
         if current_node == start:
             current_cost = 0.0
-        else:              
+        else:
             current_cost = branch[current_node][0]
-            
-        if current_node == goal:        
+
+        if current_node == goal:
             print('Found a path.')
             found = True
             break
@@ -118,12 +122,12 @@ def a_star(grid, h, start, goal):
                 next_node = (current_node[0] + da[0], current_node[1] + da[1])
                 branch_cost = current_cost + action.cost
                 queue_cost = branch_cost + h(next_node, goal)
-                
-                if next_node not in visited:                
-                    visited.add(next_node)               
+
+                if next_node not in visited:
+                    visited.add(next_node)
                     branch[next_node] = (branch_cost, current_node, action)
                     queue.put((queue_cost, next_node))
-             
+
     if found:
         # retrace steps
         n = goal
@@ -136,7 +140,7 @@ def a_star(grid, h, start, goal):
     else:
         print('**********************')
         print('Failed to find a path!')
-        print('**********************') 
+        print('**********************')
     return path[::-1], path_cost
 
 
@@ -144,3 +148,22 @@ def a_star(grid, h, start, goal):
 def heuristic(position, goal_position):
     return np.linalg.norm(np.array(position) - np.array(goal_position))
 
+def convert(p):
+    return np.array([p[0], p[1], 1.]).reshape(1, -1)
+
+def prune_path(path):
+
+    pp = [p for p in path]
+    num = 0
+    while num < len(pp) - 2:
+        if collinear(convert(pp[num]), convert(pp[num+1]), convert(pp[num+2])):
+            pp.remove(pp[num+1])
+        else:
+             num += 1
+
+    return pp
+
+def collinear(a, b, c):
+    m = np.concatenate((a, b, c), 0)
+    det = np.linalg.det(m)
+    return abs(det) < 1e-6
