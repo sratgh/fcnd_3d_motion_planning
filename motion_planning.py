@@ -147,9 +147,7 @@ class MotionPlanning(Drone):
         # Define a grid for a particular altitude and safety margin around obstacles
         grid, north_offset, east_offset = create_grid(self.data, TARGET_ALTITUDE, SAFETY_DISTANCE)
         print(grid.shape)
-        ## Plot city image
-        #plt.imshow(grid)
-        #plt.show()
+
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # Define starting point on the grid (this is just grid center)
         #grid_start = (-north_offset, -east_offset)
@@ -175,14 +173,22 @@ class MotionPlanning(Drone):
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         # TODO: prune path to minimize number of waypoints
         path = prune_path(path)
+
         # TODO (if you're feeling ambitious): Try a different approach altogether!
 
         # Convert path to waypoints
         waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
         # Set self.waypoints
         self.waypoints = waypoints
+
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
         self.send_waypoints()
+
+        ## Plot city image
+        #plt.imshow(grid)
+        #print(path)
+        #plt.plot(path)
+        #plt.show()
 
     def start(self):
         self.start_log("Logs", "NavLog.txt")
@@ -196,11 +202,6 @@ class MotionPlanning(Drone):
 
         self.stop_log()
 
-    def plot_map(self):
-
-        for line in self.data:
-            # Create a Rectangle patch
-            rect = patches.Rectangle((line[0]-line[3],line[1]-line[4]),40,30,linewidth=1,edgecolor='r',facecolor='none')
 
 
 if __name__ == "__main__":
@@ -210,7 +211,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=60)
-    drone = MotionPlanning(conn, (-122.397850, 37.792580, 0.0))
+                 # Home position (-122.397450, 37.792480)
+    drone = MotionPlanning(conn, (-122.399268, 37.794188, 0.0))
+    # Example 1: -122.399268, 37.794188, 0.0
     time.sleep(1)
 
     drone.start()
